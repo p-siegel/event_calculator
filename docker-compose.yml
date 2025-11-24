@@ -8,10 +8,11 @@ services:
       - "3002:3002"
     volumes:
       - ./data:/app/data
-      - ./event_calculator.db:/app/event_calculator.db
+      - event_calculator_db:/app/data/db
     environment:
       - NODE_ENV=production
       - PORT=3002
+      - DATA_DIR=/app/data/db
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/api/check-auth"]
@@ -19,4 +20,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  event_calculator_db:
+    driver: local
 

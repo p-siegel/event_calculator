@@ -15,8 +15,13 @@ RUN npm install --only=production
 # Copy application files
 COPY . .
 
-# Create directory for database
-RUN mkdir -p /app/data
+# Create directory for database with proper permissions
+RUN mkdir -p /app/data/db && \
+    chmod -R 777 /app && \
+    chown -R node:node /app
+
+# Switch to non-root user
+USER node
 
 # Expose port
 EXPOSE 3002

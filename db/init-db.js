@@ -1,8 +1,17 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 
-const dbPath = path.join(__dirname, '..', 'event_calculator.db');
+// Use /app/data/db in Docker, otherwise project root
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '..');
+const dbFileName = 'event_calculator.db';
+const dbPath = path.join(dataDir, dbFileName);
+
+// Ensure data directory exists
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
 
 // Create database connection
 const db = new sqlite3.Database(dbPath);
