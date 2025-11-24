@@ -28,7 +28,9 @@ const initializeDatabase = () => {
             
             if (!row) {
                 console.log('Database not found. Creating schema...');
-                const schema = `
+                
+                // Create tables first
+                const tables = `
                     CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         username TEXT UNIQUE NOT NULL,
@@ -79,53 +81,73 @@ const initializeDatabase = () => {
                         sess TEXT NOT NULL,
                         expire INTEGER NOT NULL
                     );
-                    
-                    CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
-                    CREATE INDEX IF NOT EXISTS idx_event_responsibles_event_id ON event_responsibles(event_id);
-                    CREATE INDEX IF NOT EXISTS idx_expenses_event_id ON expenses(event_id);
-                    CREATE INDEX IF NOT EXISTS idx_income_without_expense_event_id ON income_without_expense(event_id);
-                    CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire);
                 `;
                 
-                db.exec(schema, async (err) => {
+                db.exec(tables, async (err) => {
                     if (err) {
-                        console.error('Error creating database schema:', err);
+                        console.error('Error creating tables:', err);
                         reject(err);
                         return;
                     }
                     
-                    console.log('Database schema initialized successfully!');
-                    
-                    // Check if default user exists, if not create it
-                    db.get('SELECT id FROM users WHERE username = ?', ['admin'], async (err, user) => {
+                    // Create indexes after tables
+                    // Check if sessions table has expire column before creating index
+                    db.all("PRAGMA table_info(sessions)", (err, columns) => {
                         if (err) {
-                            console.error('Error checking for default user:', err);
-                            reject(err);
-                            return;
+                            console.log('Warning: Could not check sessions table structure');
                         }
                         
-                        if (!user) {
-                            // Create default user with password 'admin' (change this in production!)
-                            const defaultPassword = 'admin';
-                            const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+                        const hasExpireColumn = columns && columns.some(col => col.name === 'expire');
+                        
+                        const indexes = `
+                            CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id);
+                            CREATE INDEX IF NOT EXISTS idx_event_responsibles_event_id ON event_responsibles(event_id);
+                            CREATE INDEX IF NOT EXISTS idx_expenses_event_id ON expenses(event_id);
+                            CREATE INDEX IF NOT EXISTS idx_income_without_expense_event_id ON income_without_expense(event_id);
+                            ${hasExpireColumn ? 'CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire);' : ''}
+                        `;
+                        
+                        db.exec(indexes, async (err) => {
+                            if (err) {
+                                console.error('Error creating indexes:', err);
+                                // Don't reject, indexes are optional
+                                console.log('Warning: Some indexes could not be created, continuing anyway...');
+                            }
                             
-                            db.run(
-                                `INSERT INTO users (username, password_hash) VALUES (?, ?)`,
-                                ['admin', hashedPassword],
-                                (err) => {
-                                    if (err) {
-                                        console.error('Error creating default user:', err);
-                                        reject(err);
-                                    } else {
-                                        console.log('Default user created: username=admin, password=admin');
-                                        resolve();
+                            console.log('Database schema initialized successfully!');
+                            
+                            // Check if default user exists, if not create it
+                            db.get('SELECT id FROM users WHERE username = ?', ['admin'], async (err, user) => {
+                            if (err) {
+                                console.error('Error checking for default user:', err);
+                                reject(err);
+                                return;
+                            }
+                            
+                            if (!user) {
+                                // Create default user with password 'admin' (change this in production!)
+                                const defaultPassword = 'admin';
+                                const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+                                
+                                db.run(
+                                    `INSERT INTO users (username, password_hash) VALUES (?, ?)`,
+                                    ['admin', hashedPassword],
+                                    (err) => {
+                                        if (err) {
+                                            console.error('Error creating default user:', err);
+                                            reject(err);
+                                        } else {
+                                            console.log('Default user created: username=admin, password=admin');
+                                            resolve();
+                                        }
                                     }
-                                }
-                            );
-                        } else {
-                            console.log('Default user already exists');
-                            resolve();
-                        }
+                                );
+                            } else {
+                                console.log('Default user already exists');
+                                resolve();
+                            }
+                        });
+                    });
                     });
                 });
             } else {
