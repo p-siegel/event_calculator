@@ -8,10 +8,11 @@ services:
       - "3002:3002"
     volumes:
       - ./data:/app/data
-      - ./event_calculator.db:/app/event_calculator.db
+      - event_calculator_db:/app/data/db
     environment:
       - NODE_ENV=production
       - PORT=3002
+      - DATA_DIR=/app/data/db
     restart: unless-stopped
     networks:
       - traefik_default
@@ -36,3 +37,6 @@ services:
 networks:
   traefik_default:
     external: true
+volumes:
+  event_calculator_db:
+    driver: local

@@ -14,9 +14,10 @@ app.use(express.urlencoded({ extended: true }));
 // Session configuration with SQLite store
 let sessionStore;
 try {
+    const dataDir = process.env.DATA_DIR || __dirname;
     sessionStore = new SQLiteStore({
         db: 'event_calculator.db',
-        dir: __dirname,
+        dir: dataDir,
         table: 'sessions',
         concurrentDB: true
     });
