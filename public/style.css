@@ -321,6 +321,14 @@ main {
     color: #2d3748;
 }
 
+.event-detail-value.positive {
+    color: #48bb78;
+}
+
+.event-detail-value.negative {
+    color: #f56565;
+}
+
 .empty-message {
     text-align: center;
     color: #718096;
@@ -371,6 +379,15 @@ main {
     position: relative;
     z-index: 1;
     flex: 1;
+}
+
+.wizard-step.clickable {
+    cursor: pointer;
+}
+
+.wizard-step.clickable:hover .step-number {
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .step-number {

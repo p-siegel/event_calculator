@@ -497,15 +497,16 @@ function goToStep(step) {
         }
     });
     
+    const previousStep = currentStep;
     currentStep = step;
     
-    // Load data if editing and moving forward
-    if (eventId && step > currentStep) {
+    // Load data if editing and we need data for the target step
+    if (eventId) {
         if (step === 2 && eventData.responsibles.length === 0) {
             loadEventData();
         } else if (step === 3 && eventData.expenses.length === 0) {
             loadEventData();
-        } else if (step === 4) {
+        } else if (step === 4 && (eventData.expenses.length === 0 || eventData.incomeWithoutExpense.length === 0)) {
             loadEventData();
         }
     }

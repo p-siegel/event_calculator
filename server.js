@@ -161,7 +161,63 @@ app.get('/api/events', requireAuth, (req, res) => {
                 return res.status(500).json({ error: 'Failed to fetch events' });
             }
             
-            res.json(events);
+            // Calculate totals for each event
+            if (events.length === 0) {
+                return res.json(events);
+            }
+            
+            const eventIds = events.map(event => event.id);
+            const placeholders = eventIds.map(() => '?').join(',');
+            
+            // Get total expenses and income for each event
+            db.all(
+                `SELECT 
+                    e.id as event_id,
+                    COALESCE(SUM(exp.quantity * exp.cost_per_unit), 0) as total_expenses,
+                    COALESCE(SUM(CASE 
+                        WHEN exp.selling_price_per_unit IS NOT NULL 
+                        THEN (exp.selling_price_per_unit - exp.cost_per_unit) * exp.quantity 
+                        ELSE 0 
+                    END), 0) as income_from_expenses,
+                    COALESCE(SUM(inc.quantity * inc.price_per_unit), 0) as income_without_expenses
+                 FROM events e
+                 LEFT JOIN expenses exp ON e.id = exp.event_id
+                 LEFT JOIN income_without_expense inc ON e.id = inc.event_id
+                 WHERE e.id IN (${placeholders})
+                 GROUP BY e.id`,
+                eventIds,
+                (err, totals) => {
+                    if (err) {
+                        console.error('Error calculating totals:', err);
+                        // Continue without totals
+                        return res.json(events);
+                    }
+                    
+                    // Create a map of event_id -> totals
+                    const totalsMap = {};
+                    totals.forEach(row => {
+                        totalsMap[row.event_id] = {
+                            total_expenses: row.total_expenses || 0,
+                            total_income: (row.income_from_expenses || 0) + (row.income_without_expenses || 0),
+                            profit_loss: ((row.income_from_expenses || 0) + (row.income_without_expenses || 0)) - (row.total_expenses || 0)
+                        };
+                    });
+                    
+                    // Add totals to each event
+                    events.forEach(event => {
+                        const totals = totalsMap[event.id] || {
+                            total_expenses: 0,
+                            total_income: 0,
+                            profit_loss: 0
+                        };
+                        event.total_expenses = totals.total_expenses;
+                        event.total_income = totals.total_income;
+                        event.profit_loss = totals.profit_loss;
+                    });
+                    
+                    res.json(events);
+                }
+            );
         }
     );
 });

@@ -121,6 +121,10 @@ function displayEvents(events) {
     }
     
     eventsList.innerHTML = events.map(event => {
+        const totalExpenses = event.total_expenses || 0;
+        const totalIncome = event.total_income || 0;
+        const profitLoss = event.profit_loss || 0;
+        
         return `
             <div class="event-card clickable" onclick="viewEvent(${event.id})">
                 <div class="event-header">
@@ -137,6 +141,18 @@ function displayEvents(events) {
                     <div class="event-detail-item">
                         <span class="event-detail-label">Ausgaben:</span>
                         <span class="event-detail-value">${event.expense_count || 0}</span>
+                    </div>
+                    <div class="event-detail-item">
+                        <span class="event-detail-label">Geplante Ausgaben:</span>
+                        <span class="event-detail-value">${formatCurrency(totalExpenses)}</span>
+                    </div>
+                    <div class="event-detail-item">
+                        <span class="event-detail-label">Geplante Einnahmen:</span>
+                        <span class="event-detail-value">${formatCurrency(totalIncome)}</span>
+                    </div>
+                    <div class="event-detail-item">
+                        <span class="event-detail-label">Gewinn/Verlust:</span>
+                        <span class="event-detail-value ${profitLoss >= 0 ? 'positive' : 'negative'}">${formatCurrency(profitLoss)}</span>
                     </div>
                     <div class="event-detail-item">
                         <span class="event-detail-label">Erstellt am:</span>
