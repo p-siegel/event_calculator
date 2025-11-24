@@ -7,10 +7,10 @@ RUN apk add --no-cache wget
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy application files
 COPY . .
