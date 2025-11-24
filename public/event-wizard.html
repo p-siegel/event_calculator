@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veranstaltungen - Event Wizard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>Veranstaltungen</h1>
+            </div>
+            <div class="header-right">
+                <span id="usernameDisplay"></span>
+                <button id="logoutBtn" class="btn btn-secondary">Abmelden</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="wizard-container">
+                <div class="wizard-header">
+                    <h2>Event Wizard</h2>
+                    <div class="wizard-steps">
+                        <div class="wizard-step" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Event-Name</div>
+                        </div>
+                        <div class="wizard-step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Verantwortliche</div>
+                        </div>
+                        <div class="wizard-step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Ausgaben</div>
+                        </div>
+                        <div class="wizard-step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Einnahmen</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schritt 1: Event-Name -->
+                <div class="wizard-step-content" id="step1" style="display: block;">
+                    <h3>Schritt 1: Event-Name</h3>
+                    <form id="step1Form">
+                        <div class="form-group">
+                            <label for="eventName">
+                                Name des Events
+                                <button type="button" class="info-btn" data-info="Geben Sie hier den Namen Ihrer Veranstaltung ein, z.B. 'Sommerfest 2026' oder 'Weihnachtsfeier 2025'. Dieser Name wird zur Identifikation des Events verwendet.">ℹ️</button>
+                            </label>
+                            <input type="text" id="eventName" name="eventName" required placeholder="Sommerfest 2026">
+                        </div>
+                        <div class="wizard-buttons">
+                            <button type="button" class="btn btn-secondary" onclick="window.location.href='/index.html'">Abbrechen</button>
+                            <button type="submit" class="btn btn-primary">Weiter</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Schritt 2: Verantwortliche -->
+                <div class="wizard-step-content" id="step2" style="display: none;">
+                    <h3>Schritt 2: Event-Verantwortliche</h3>
+                    <form id="step2Form">
+                        <div class="form-group">
+                            <label for="responsibleName">
+                                Name des Verantwortlichen
+                                <button type="button" class="info-btn" data-info="Geben Sie den Namen einer Person ein, die für diese Veranstaltung verantwortlich ist. Sie können mehrere Verantwortliche hinzufügen, indem Sie jeweils einen Namen eingeben und auf 'Hinzufügen' klicken.">ℹ️</button>
+                            </label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="responsibleName" name="responsibleName" placeholder="z.B. Max Mustermann">
+                                <button type="button" id="addResponsibleBtn" class="btn btn-primary">Hinzufügen</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="responsiblesList" class="responsibles-list">
+                        <p class="empty-message">Noch keine Verantwortlichen hinzugefügt.</p>
+                    </div>
+                    <div class="wizard-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(1)">Zurück</button>
+                        <button type="button" class="btn btn-primary" onclick="goToStep(3)">Weiter</button>
+                    </div>
+                </div>
+
+                <!-- Schritt 3: Ausgaben -->
+                <div class="wizard-step-content" id="step3" style="display: none;">
+                    <h3>Schritt 3: Ausgaben erfassen</h3>
+                    
+                    <!-- Summen-Anzeige -->
+                    <div class="summary-box">
+                        <div class="summary-item">
+                            <span class="summary-label">Geplante Ausgaben:</span>
+                            <span class="summary-value" id="totalExpenses">0,00 €</span>
+                        </div>
+                    </div>
+
+                    <!-- Ausgabe-Formular -->
+                    <form id="expenseForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expenseCategory">
+                                    Kategorie
+                                    <button type="button" class="info-btn" data-info="Wählen Sie die Kategorie für diese Ausgabe: 'Getränke' für alle Getränke, 'Speisen' für Essen, 'Sonstige' für andere Ausgaben, oder 'Ausgabe ohne Einnahme' für Ausgaben, die nicht verkauft werden (z.B. Miete, Personal).">ℹ️</button>
+                                </label>
+                                <select id="expenseCategory" name="expenseCategory" required>
+                                    <option value="">Bitte wählen</option>
+                                    <option value="Getränke">Getränke</option>
+                                    <option value="Speisen">Speisen</option>
+                                    <option value="Sonstige">Sonstige</option>
+                                    <option value="Ausgabe ohne Einnahme">Ausgabe ohne Einnahme</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="expenseName">
+                                    Name
+                                    <button type="button" class="info-btn" data-info="Geben Sie einen beschreibenden Namen für die Ausgabe ein, z.B. 'Bier', 'Bratwurst', 'Miete Veranstaltungsraum' oder 'Dekoration'.">ℹ️</button>
+                                </label>
+                                <input type="text" id="expenseName" name="expenseName" required placeholder="z.B. Bier">
+                            </div>
+                            <div class="form-group">
+                                <label for="expenseQuantity">
+                                    Menge
+                                    <button type="button" class="info-btn" data-info="Geben Sie die Anzahl der Einheiten ein, die Sie kaufen/verwenden möchten. Dies kann z.B. die Anzahl der Flaschen, Portionen oder Stück sein. Dezimalzahlen sind möglich (z.B. 1.5 für eineinhalb Liter).">ℹ️</button>
+                                </label>
+                                <input type="number" id="expenseQuantity" name="expenseQuantity" step="0.01" min="0.01" required placeholder="z.B. 100">
+                            </div>
+                            <div class="form-group">
+                                <label for="expenseCostPerUnit">
+                                    Kosten pro Einheit
+                                    <button type="button" class="info-btn" data-info="Geben Sie die Kosten für eine einzelne Einheit ein (z.B. Preis pro Flasche, pro Portion). Das Format wird automatisch als Euro-Betrag formatiert (z.B. 0,50 €).">ℹ️</button>
+                                </label>
+                                <input type="text" id="expenseCostPerUnit" name="expenseCostPerUnit" inputmode="decimal" required placeholder="0,00 €">
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Hinzufügen</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Ausgabenliste -->
+                    <div id="expensesList" class="expenses-list">
+                        <p class="empty-message">Noch keine Ausgaben hinzugefügt.</p>
+                    </div>
+
+                    <div class="wizard-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(2)">Zurück</button>
+                        <button type="button" class="btn btn-primary" onclick="goToStep(4)">Weiter</button>
+                    </div>
+                </div>
+
+                <!-- Schritt 4: Einnahmen -->
+                <div class="wizard-step-content" id="step4" style="display: none;">
+                    <h3>Schritt 4: Einnahmen erfassen</h3>
+                    
+                    <!-- Summen-Anzeige -->
+                    <div class="summary-box">
+                        <div class="summary-item">
+                            <span class="summary-label">Geplante Ausgaben:</span>
+                            <span class="summary-value" id="totalExpensesStep4">0,00 €</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Geplante Einnahmen:</span>
+                            <span class="summary-value" id="totalIncomeStep4">0,00 €</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Gewinn/Verlust:</span>
+                            <span class="summary-value" id="profitLossStep4">0,00 €</span>
+                        </div>
+                    </div>
+
+                    <!-- Einnahmen für Ausgaben -->
+                    <div class="section">
+                        <h4>Einnahmen für erfasste Ausgaben</h4>
+                        <p style="color: #718096; margin-bottom: 20px;">Geben Sie für jede Ausgabe den geplanten Verkaufspreis ein:</p>
+                        <div id="expensesIncomeList" class="expenses-income-list">
+                            <p class="empty-message">Keine Ausgaben vorhanden, für die Einnahmen erfasst werden können.</p>
+                        </div>
+                    </div>
+
+                    <!-- Zusätzliche Einnahmen ohne Ausgabe -->
+                    <div class="section">
+                        <h4>Zusätzliche Einnahmen ohne Ausgabe</h4>
+                        <form id="incomeWithoutExpenseForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="incomeName">
+                                        Name
+                                        <button type="button" class="info-btn" data-info="Geben Sie einen beschreibenden Namen für die Einnahme ein, z.B. 'Eintrittsgelder', 'Spenden', 'Sponsoring'.">ℹ️</button>
+                                    </label>
+                                    <input type="text" id="incomeName" name="incomeName" placeholder="z.B. Eintrittsgelder">
+                                </div>
+                                <div class="form-group">
+                                    <label for="incomeQuantity">
+                                        Menge
+                                        <button type="button" class="info-btn" data-info="Geben Sie die Anzahl der Einheiten ein, z.B. Anzahl der Eintrittskarten oder Anzahl der Spenden.">ℹ️</button>
+                                    </label>
+                                    <input type="number" id="incomeQuantity" name="incomeQuantity" step="0.01" min="0.01" placeholder="z.B. 100">
+                                </div>
+                                <div class="form-group">
+                                    <label for="incomePricePerUnit">
+                                        Preis pro Einheit
+                                        <button type="button" class="info-btn" data-info="Geben Sie den Preis pro Einheit ein, z.B. Preis pro Eintrittskarte oder durchschnittlicher Spendenbetrag.">ℹ️</button>
+                                    </label>
+                                    <input type="text" id="incomePricePerUnit" name="incomePricePerUnit" inputmode="decimal" placeholder="0,00 €">
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">Hinzufügen</button>
+                                </div>
+                            </div>
+                        </form>
+                        <div id="incomeWithoutExpenseList" class="income-without-expense-list">
+                            <p class="empty-message">Noch keine zusätzlichen Einnahmen hinzugefügt.</p>
+                        </div>
+                    </div>
+
+                    <div class="wizard-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(3)">Zurück</button>
+                        <button type="button" id="finishWizardBtn" class="btn btn-primary">Event speichern</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="infoModal" class="info-modal" style="display: none;">
+        <div class="info-modal-content">
+            <span class="info-modal-close">&times;</span>
+            <h3>Information</h3>
+            <p id="infoModalText"></p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="wizard.js"></script>
+</body>
+</html>
+

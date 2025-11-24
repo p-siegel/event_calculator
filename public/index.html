@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veranstaltungen - Übersicht</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>Veranstaltungen</h1>
+            </div>
+            <div class="header-right">
+                <span id="usernameDisplay"></span>
+                <button id="logoutBtn" class="btn btn-secondary">Abmelden</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Meine Events</h2>
+                    <button id="newEventBtn" class="btn btn-primary">Neues Event erstellen</button>
+                </div>
+                <div id="eventsList" class="events-list">
+                    <p class="empty-message">Noch keine Events vorhanden. Erstellen Sie ein neues Event.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

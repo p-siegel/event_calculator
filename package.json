@@ -1,0 +1,29 @@
+{
+  "name": "event_calculator",
+  "version": "1.0.0",
+  "main": "server.js",
+  "description": "Veranstaltungen - Event planning and expense calculation application",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "add-user": "node add-user.js"
+  },
+  "keywords": [
+    "event",
+    "calculator",
+    "expense",
+    "planning",
+    "express",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-sqlite3": "^0.9.16",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "sqlite3": "^5.1.7"
+  }
+}
+
