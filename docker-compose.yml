@@ -13,10 +13,26 @@ services:
       - NODE_ENV=production
       - PORT=3002
     restart: unless-stopped
+    networks:
+      - traefik_default
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/api/check-auth"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.events.rule=Host(`events.pasiegel.de`)"
+      - "traefik.http.routers.events.entrypoints=https"
+      - "traefik.http.routers.events.tls.certresolver=http"
+      - "traefik.http.routers.events-http.rule=Host(`events.pasiegel.de`)"
+      - "traefik.http.routers.events-http.entrypoints=http"
+      - "traefik.http.routers.events-http.middlewares=redirect-to-https"
 
+      # Middleware for redirect scheme
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+networks:
+  traefik_default:
+    external: true
