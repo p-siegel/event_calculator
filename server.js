@@ -176,7 +176,7 @@ app.get('/api/events', requireAuth, (req, res) => {
                     COALESCE(SUM(exp.quantity * exp.cost_per_unit), 0) as total_expenses,
                     COALESCE(SUM(CASE 
                         WHEN exp.selling_price_per_unit IS NOT NULL 
-                        THEN (exp.selling_price_per_unit - exp.cost_per_unit) * exp.quantity 
+                        THEN exp.selling_price_per_unit * exp.quantity 
                         ELSE 0 
                     END), 0) as income_from_expenses,
                     COALESCE(SUM(inc.quantity * inc.price_per_unit), 0) as income_without_expenses

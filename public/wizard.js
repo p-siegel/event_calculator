@@ -620,7 +620,7 @@ function displayExpenses() {
                         ${categoryExpenses.map(expense => {
                             const totalCost = expense.quantity * expense.cost_per_unit;
                             const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
-                            const totalIncome = hasSellingPrice ? (expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity : 0;
+                            const totalIncome = hasSellingPrice ? expense.selling_price_per_unit * expense.quantity : 0;
                             
                             return `
                                 <div class="expense-item">
@@ -633,7 +633,7 @@ function displayExpenses() {
                                             <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
                                             ${hasSellingPrice ? `<span>Verkaufspreis/Einheit: ${formatCurrency(expense.selling_price_per_unit)}</span>` : ''}
                                             <span>Gesamtkosten: ${formatCurrency(totalCost)}</span>
-                                            ${hasSellingPrice ? `<span>Gewinn: ${formatCurrency(totalIncome)}</span>` : ''}
+                                            ${hasSellingPrice ? `<span>Einnahmen: ${formatCurrency(totalIncome)}</span>` : ''}
                                         </div>
                                     </div>
                                     <div class="expense-actions">
@@ -665,7 +665,7 @@ function displayExpenses() {
                         ${categoryExpenses.map(expense => {
                             const totalCost = expense.quantity * expense.cost_per_unit;
                             const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
-                            const totalIncome = hasSellingPrice ? (expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity : 0;
+                            const totalIncome = hasSellingPrice ? expense.selling_price_per_unit * expense.quantity : 0;
                             
                             return `
                                 <div class="expense-item">
@@ -678,7 +678,7 @@ function displayExpenses() {
                                             <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
                                             ${hasSellingPrice ? `<span>Verkaufspreis/Einheit: ${formatCurrency(expense.selling_price_per_unit)}</span>` : ''}
                                             <span>Gesamtkosten: ${formatCurrency(totalCost)}</span>
-                                            ${hasSellingPrice ? `<span>Gewinn: ${formatCurrency(totalIncome)}</span>` : ''}
+                                            ${hasSellingPrice ? `<span>Einnahmen: ${formatCurrency(totalIncome)}</span>` : ''}
                                         </div>
                                     </div>
                                     <div class="expense-actions">
@@ -791,7 +791,7 @@ function displayExpensesIncomeList() {
             const categoryTotalIncome = categoryExpenses.reduce((sum, expense) => {
                 const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
                 if (hasSellingPrice) {
-                    return sum + ((expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity);
+                    return sum + (expense.selling_price_per_unit * expense.quantity);
                 }
                 return sum;
             }, 0);
@@ -847,7 +847,7 @@ function displayExpensesIncomeList() {
             const categoryTotalIncome = categoryExpenses.reduce((sum, expense) => {
                 const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
                 if (hasSellingPrice) {
-                    return sum + ((expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity);
+                    return sum + (expense.selling_price_per_unit * expense.quantity);
                 }
                 return sum;
             }, 0);
@@ -1046,7 +1046,7 @@ function updateCalculationsStep4() {
         if (expense.selling_price_per_unit === null || expense.selling_price_per_unit === undefined) {
             return sum;
         }
-        return sum + ((expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity);
+        return sum + (expense.selling_price_per_unit * expense.quantity);
     }, 0);
     
     // Income without expenses
