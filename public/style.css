@@ -605,17 +605,17 @@ main {
     margin-bottom: 0;
 }
 
-.expense-income-category-title {
+.expense-income-category-header .expense-income-category-title {
     font-size: 18px;
     font-weight: 600;
-    color: #ffffff;
+    color: #ffffff !important;
     margin: 0;
 }
 
-.expense-income-category-total {
+.expense-income-category-header .expense-income-category-total {
     font-size: 16px;
     font-weight: 600;
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
 .expense-income-category-items {
