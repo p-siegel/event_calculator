@@ -768,36 +768,133 @@ function displayExpensesIncomeList() {
         return;
     }
     
-    expensesIncomeList.innerHTML = expensesWithIncome.map(expense => {
-        const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
-        const sellingPriceDisplay = hasSellingPrice ? formatCurrency(expense.selling_price_per_unit) : '';
-        
-        return `
-            <div class="expense-income-item">
-                <div class="expense-income-info">
-                    <div class="expense-income-header">
-                        <span class="expense-income-name">${expense.name}</span>
-                        <span class="expense-income-category" data-category="${expense.category}">${expense.category}</span>
+    // Group expenses by category
+    const expensesByCategory = {};
+    expensesWithIncome.forEach(expense => {
+        if (!expensesByCategory[expense.category]) {
+            expensesByCategory[expense.category] = [];
+        }
+        expensesByCategory[expense.category].push(expense);
+    });
+    
+    // Define category order
+    const categoryOrder = ['Getränke', 'Speisen', 'Sonstige'];
+    
+    // Build HTML with grouped expenses
+    let html = '';
+    
+    categoryOrder.forEach(category => {
+        if (expensesByCategory[category] && expensesByCategory[category].length > 0) {
+            const categoryExpenses = expensesByCategory[category];
+            
+            // Calculate total income for this category
+            const categoryTotalIncome = categoryExpenses.reduce((sum, expense) => {
+                const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
+                if (hasSellingPrice) {
+                    return sum + ((expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity);
+                }
+                return sum;
+            }, 0);
+            
+            html += `
+                <div class="expense-income-category-group">
+                    <div class="expense-income-category-header">
+                        <h4 class="expense-income-category-title">${category}</h4>
+                        <span class="expense-income-category-total">Gesamt: ${formatCurrency(categoryTotalIncome)}</span>
                     </div>
-                    <div class="expense-income-details">
-                        <span>Menge: ${expense.quantity}</span>
-                        <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
+                    <div class="expense-income-category-items">
+                        ${categoryExpenses.map(expense => {
+                            const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
+                            const sellingPriceDisplay = hasSellingPrice ? formatCurrency(expense.selling_price_per_unit) : '';
+                            
+                            return `
+                                <div class="expense-income-item">
+                                    <div class="expense-income-info">
+                                        <div class="expense-income-header">
+                                            <span class="expense-income-name">${expense.name}</span>
+                                        </div>
+                                        <div class="expense-income-details">
+                                            <span>Menge: ${expense.quantity}</span>
+                                            <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="expense-income-input">
+                                        <label>
+                                            Verkaufspreis pro Einheit:
+                                            <input type="text" 
+                                                   class="selling-price-input" 
+                                                   data-expense-id="${expense.id}"
+                                                   value="${sellingPriceDisplay}"
+                                                   placeholder="0,00 €"
+                                                   inputmode="decimal">
+                                        </label>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
-                <div class="expense-income-input">
-                    <label>
-                        Verkaufspreis pro Einheit:
-                        <input type="text" 
-                               class="selling-price-input" 
-                               data-expense-id="${expense.id}"
-                               value="${sellingPriceDisplay}"
-                               placeholder="0,00 €"
-                               inputmode="decimal">
-                    </label>
+            `;
+        }
+    });
+    
+    // Add any categories not in the predefined order
+    Object.keys(expensesByCategory).forEach(category => {
+        if (!categoryOrder.includes(category)) {
+            const categoryExpenses = expensesByCategory[category];
+            
+            // Calculate total income for this category
+            const categoryTotalIncome = categoryExpenses.reduce((sum, expense) => {
+                const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
+                if (hasSellingPrice) {
+                    return sum + ((expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity);
+                }
+                return sum;
+            }, 0);
+            
+            html += `
+                <div class="expense-income-category-group">
+                    <div class="expense-income-category-header">
+                        <h4 class="expense-income-category-title">${category}</h4>
+                        <span class="expense-income-category-total">Gesamt: ${formatCurrency(categoryTotalIncome)}</span>
+                    </div>
+                    <div class="expense-income-category-items">
+                        ${categoryExpenses.map(expense => {
+                            const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
+                            const sellingPriceDisplay = hasSellingPrice ? formatCurrency(expense.selling_price_per_unit) : '';
+                            
+                            return `
+                                <div class="expense-income-item">
+                                    <div class="expense-income-info">
+                                        <div class="expense-income-header">
+                                            <span class="expense-income-name">${expense.name}</span>
+                                        </div>
+                                        <div class="expense-income-details">
+                                            <span>Menge: ${expense.quantity}</span>
+                                            <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="expense-income-input">
+                                        <label>
+                                            Verkaufspreis pro Einheit:
+                                            <input type="text" 
+                                                   class="selling-price-input" 
+                                                   data-expense-id="${expense.id}"
+                                                   value="${sellingPriceDisplay}"
+                                                   placeholder="0,00 €"
+                                                   inputmode="decimal">
+                                        </label>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
-            </div>
-        `;
-    }).join('');
+            `;
+        }
+    });
+    
+    expensesIncomeList.innerHTML = html;
     
     // Setup EUR formatting and auto-save for selling price inputs
     document.querySelectorAll('.selling-price-input').forEach(input => {
