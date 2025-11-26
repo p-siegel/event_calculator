@@ -336,7 +336,17 @@ function initializeWizard() {
                         // Add new expense
                         eventData.expenses.push(data);
                     }
+                    
+                    // Save the selected category before resetting
+                    const selectedCategory = document.getElementById('expenseCategory').value;
+                    
                     expenseForm.reset();
+                    
+                    // Restore the selected category after reset
+                    if (selectedCategory) {
+                        document.getElementById('expenseCategory').value = selectedCategory;
+                    }
+                    
                     displayExpenses();
                     updateCalculationsStep3();
                 } else {
@@ -580,33 +590,111 @@ function displayExpenses() {
         return;
     }
     
-    expensesList.innerHTML = eventData.expenses.map(expense => {
-        const totalCost = expense.quantity * expense.cost_per_unit;
-        const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
-        const totalIncome = hasSellingPrice ? (expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity : 0;
-        
-        return `
-            <div class="expense-item">
-                <div class="expense-info">
-                    <div class="expense-header">
-                        <span class="expense-name">${expense.name}</span>
-                        <span class="expense-category" data-category="${expense.category}">${expense.category}</span>
+    // Group expenses by category
+    const expensesByCategory = {};
+    eventData.expenses.forEach(expense => {
+        if (!expensesByCategory[expense.category]) {
+            expensesByCategory[expense.category] = [];
+        }
+        expensesByCategory[expense.category].push(expense);
+    });
+    
+    // Define category order
+    const categoryOrder = ['Getränke', 'Speisen', 'Sonstige', 'Ausgabe ohne Einnahme'];
+    
+    // Build HTML with grouped expenses
+    let html = '';
+    
+    categoryOrder.forEach(category => {
+        if (expensesByCategory[category] && expensesByCategory[category].length > 0) {
+            const categoryExpenses = expensesByCategory[category];
+            const categoryTotal = categoryExpenses.reduce((sum, exp) => sum + (exp.quantity * exp.cost_per_unit), 0);
+            
+            html += `
+                <div class="expense-category-group">
+                    <div class="expense-category-header">
+                        <h4 class="expense-category-title">${category}</h4>
+                        <span class="expense-category-total">Gesamt: ${formatCurrency(categoryTotal)}</span>
                     </div>
-                    <div class="expense-details">
-                        <span>Menge: ${expense.quantity}</span>
-                        <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
-                        ${hasSellingPrice ? `<span>Verkaufspreis/Einheit: ${formatCurrency(expense.selling_price_per_unit)}</span>` : ''}
-                        <span>Gesamtkosten: ${formatCurrency(totalCost)}</span>
-                        ${hasSellingPrice ? `<span>Gewinn: ${formatCurrency(totalIncome)}</span>` : ''}
+                    <div class="expense-category-items">
+                        ${categoryExpenses.map(expense => {
+                            const totalCost = expense.quantity * expense.cost_per_unit;
+                            const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
+                            const totalIncome = hasSellingPrice ? (expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity : 0;
+                            
+                            return `
+                                <div class="expense-item">
+                                    <div class="expense-info">
+                                        <div class="expense-header">
+                                            <span class="expense-name">${expense.name}</span>
+                                        </div>
+                                        <div class="expense-details">
+                                            <span>Menge: ${expense.quantity}</span>
+                                            <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
+                                            ${hasSellingPrice ? `<span>Verkaufspreis/Einheit: ${formatCurrency(expense.selling_price_per_unit)}</span>` : ''}
+                                            <span>Gesamtkosten: ${formatCurrency(totalCost)}</span>
+                                            ${hasSellingPrice ? `<span>Gewinn: ${formatCurrency(totalIncome)}</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="expense-actions">
+                                        <button class="btn btn-primary btn-small" onclick="editExpense(${expense.id})">Bearbeiten</button>
+                                        <button class="btn btn-danger btn-small" onclick="deleteExpense(${expense.id})">Löschen</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
-                <div class="expense-actions">
-                    <button class="btn btn-primary btn-small" onclick="editExpense(${expense.id})">Bearbeiten</button>
-                    <button class="btn btn-danger btn-small" onclick="deleteExpense(${expense.id})">Löschen</button>
+            `;
+        }
+    });
+    
+    // Add any categories not in the predefined order
+    Object.keys(expensesByCategory).forEach(category => {
+        if (!categoryOrder.includes(category)) {
+            const categoryExpenses = expensesByCategory[category];
+            const categoryTotal = categoryExpenses.reduce((sum, exp) => sum + (exp.quantity * exp.cost_per_unit), 0);
+            
+            html += `
+                <div class="expense-category-group">
+                    <div class="expense-category-header">
+                        <h4 class="expense-category-title">${category}</h4>
+                        <span class="expense-category-total">Gesamt: ${formatCurrency(categoryTotal)}</span>
+                    </div>
+                    <div class="expense-category-items">
+                        ${categoryExpenses.map(expense => {
+                            const totalCost = expense.quantity * expense.cost_per_unit;
+                            const hasSellingPrice = expense.selling_price_per_unit !== null && expense.selling_price_per_unit !== undefined;
+                            const totalIncome = hasSellingPrice ? (expense.selling_price_per_unit - expense.cost_per_unit) * expense.quantity : 0;
+                            
+                            return `
+                                <div class="expense-item">
+                                    <div class="expense-info">
+                                        <div class="expense-header">
+                                            <span class="expense-name">${expense.name}</span>
+                                        </div>
+                                        <div class="expense-details">
+                                            <span>Menge: ${expense.quantity}</span>
+                                            <span>Kosten/Einheit: ${formatCurrency(expense.cost_per_unit)}</span>
+                                            ${hasSellingPrice ? `<span>Verkaufspreis/Einheit: ${formatCurrency(expense.selling_price_per_unit)}</span>` : ''}
+                                            <span>Gesamtkosten: ${formatCurrency(totalCost)}</span>
+                                            ${hasSellingPrice ? `<span>Gewinn: ${formatCurrency(totalIncome)}</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="expense-actions">
+                                        <button class="btn btn-primary btn-small" onclick="editExpense(${expense.id})">Bearbeiten</button>
+                                        <button class="btn btn-danger btn-small" onclick="deleteExpense(${expense.id})">Löschen</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
                 </div>
-            </div>
-        `;
-    }).join('');
+            `;
+        }
+    });
+    
+    expensesList.innerHTML = html;
 }
 
 // Edit expense
