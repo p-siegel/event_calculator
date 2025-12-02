@@ -1037,21 +1037,28 @@ async function deleteIncomeWithoutExpense(incomeId) {
 
 // Update calculations for step 4
 function updateCalculationsStep4() {
+    // Ensure all values are treated as numbers
     const totalExpenses = eventData.expenses.reduce((sum, expense) => {
-        return sum + (expense.quantity * expense.cost_per_unit);
+        const quantity = parseFloat(expense.quantity) || 0;
+        const costPerUnit = parseFloat(expense.cost_per_unit) || 0;
+        return sum + (quantity * costPerUnit);
     }, 0);
     
     // Income from expenses with selling price
     const incomeFromExpenses = eventData.expenses.reduce((sum, expense) => {
-        if (expense.selling_price_per_unit === null || expense.selling_price_per_unit === undefined) {
+        const sellingPrice = parseFloat(expense.selling_price_per_unit);
+        if (isNaN(sellingPrice) || sellingPrice === null || sellingPrice === undefined) {
             return sum;
         }
-        return sum + (expense.selling_price_per_unit * expense.quantity);
+        const quantity = parseFloat(expense.quantity) || 0;
+        return sum + (sellingPrice * quantity);
     }, 0);
     
     // Income without expenses
     const incomeWithoutExpenses = eventData.incomeWithoutExpense.reduce((sum, income) => {
-        return sum + (income.quantity * income.price_per_unit);
+        const quantity = parseFloat(income.quantity) || 0;
+        const pricePerUnit = parseFloat(income.price_per_unit) || 0;
+        return sum + (quantity * pricePerUnit);
     }, 0);
     
     const totalIncome = incomeFromExpenses + incomeWithoutExpenses;

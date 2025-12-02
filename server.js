@@ -170,21 +170,28 @@ app.get('/api/events', requireAuth, (req, res) => {
             const placeholders = eventIds.map(() => '?').join(',');
             
             // Get total expenses and income for each event
+            // Use separate subqueries to avoid cartesian product issues
             db.all(
                 `SELECT 
                     e.id as event_id,
-                    COALESCE(SUM(exp.quantity * exp.cost_per_unit), 0) as total_expenses,
-                    COALESCE(SUM(CASE 
-                        WHEN exp.selling_price_per_unit IS NOT NULL 
-                        THEN exp.selling_price_per_unit * exp.quantity 
-                        ELSE 0 
-                    END), 0) as income_from_expenses,
-                    COALESCE(SUM(inc.quantity * inc.price_per_unit), 0) as income_without_expenses
+                    COALESCE((
+                        SELECT SUM(exp.quantity * exp.cost_per_unit)
+                        FROM expenses exp
+                        WHERE exp.event_id = e.id
+                    ), 0) as total_expenses,
+                    COALESCE((
+                        SELECT SUM(exp.selling_price_per_unit * exp.quantity)
+                        FROM expenses exp
+                        WHERE exp.event_id = e.id
+                        AND exp.selling_price_per_unit IS NOT NULL
+                    ), 0) as income_from_expenses,
+                    COALESCE((
+                        SELECT SUM(inc.quantity * inc.price_per_unit)
+                        FROM income_without_expense inc
+                        WHERE inc.event_id = e.id
+                    ), 0) as income_without_expenses
                  FROM events e
-                 LEFT JOIN expenses exp ON e.id = exp.event_id
-                 LEFT JOIN income_without_expense inc ON e.id = inc.event_id
-                 WHERE e.id IN (${placeholders})
-                 GROUP BY e.id`,
+                 WHERE e.id IN (${placeholders})`,
                 eventIds,
                 (err, totals) => {
                     if (err) {
@@ -196,10 +203,17 @@ app.get('/api/events', requireAuth, (req, res) => {
                     // Create a map of event_id -> totals
                     const totalsMap = {};
                     totals.forEach(row => {
+                        // Ensure all values are treated as numbers
+                        const totalExpenses = parseFloat(row.total_expenses) || 0;
+                        const incomeFromExpenses = parseFloat(row.income_from_expenses) || 0;
+                        const incomeWithoutExpenses = parseFloat(row.income_without_expenses) || 0;
+                        const totalIncome = incomeFromExpenses + incomeWithoutExpenses;
+                        const profitLoss = totalIncome - totalExpenses;
+                        
                         totalsMap[row.event_id] = {
-                            total_expenses: row.total_expenses || 0,
-                            total_income: (row.income_from_expenses || 0) + (row.income_without_expenses || 0),
-                            profit_loss: ((row.income_from_expenses || 0) + (row.income_without_expenses || 0)) - (row.total_expenses || 0)
+                            total_expenses: totalExpenses,
+                            total_income: totalIncome,
+                            profit_loss: profitLoss
                         };
                     });
                     
